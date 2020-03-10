@@ -1,6 +1,7 @@
 'use strict';
 const got = require('got');
 const Conf = require('conf');
+const chalk = require('chalk');
 const Listr = require('listr');
 const tempy = require('tempy');
 const latestVersion = require('latest-version');
@@ -9,11 +10,9 @@ const { join } = require('path');
 const { existsSync } = require('fs');
 const { readFile, writeFile } = require('fs').promises;
 
-const config = new Conf();
+const { PACKAGE_NAME } = require('./constants');
 
-// Only Check for latest version once a day
-const ONE_DAY = 1000 * 60 * 60 * 24;
-const updateCheckInterval = ONE_DAY;
+const config = new Conf();
 
 /**
  * Returns a async Listr task handler which downloads an ADF schema from unpkg.com
@@ -23,7 +22,7 @@ const updateCheckInterval = ONE_DAY;
  */
 const downloadSchema = (path, version, stage) => {
   return async (ctx, task) => {
-    const url = `https://unpkg.com/@atlaskit/adf-schema@${version}/dist/json-schema/v1/${stage}.json`;
+    const url = `https://unpkg.com/${PACKAGE_NAME}@${version}/dist/json-schema/v1/${stage}.json`;
     const response = await got(url).on('downloadProgress', progress => {
       task.output = `${progress.percent * 100}%`;
     });
@@ -37,11 +36,13 @@ const downloadSchema = (path, version, stage) => {
 const schemaTasks = () =>
   new Listr([
     {
-      title: 'Checking update interval',
-      skip: () =>
-        Date.now() - (config.get('lastUpdateCheck') || 0) < updateCheckInterval,
+      title: 'Fetching latest version from npm',
+      skip: ctx =>
+        ctx.version ||
+        Date.now() - (config.get('lastUpdateCheck') || 0) <
+          ctx.updateCheckInterval,
       task: async (ctx, task) => {
-        const version = await latestVersion('@atlaskit/adf-schema');
+        const version = await latestVersion(PACKAGE_NAME);
         ctx.version = version;
         task.output = version;
         config.set('version', version);
@@ -49,13 +50,13 @@ const schemaTasks = () =>
       },
     },
     {
-      title: 'Getting version',
+      title: 'Retrieving stored version',
       skip: ctx => !!ctx.version,
       task: ctx => {
         const version = config.get('version');
         if (!version) {
           throw new Error(
-            `Couldn't find ADF Schema version! Try a force update using :TODO:.`
+            chalk`Couldn't find ADF Schema v${version} in Cache! Try passing {bold --force} option.`
           );
         }
         ctx.version = version;
@@ -65,12 +66,12 @@ const schemaTasks = () =>
       title: 'Downloading',
       skip: async ctx => {
         const path = config.get(`schemas.${ctx.version}`);
-        return path && existsSync(path)
+        return !ctx.force && path && existsSync(path)
           ? `Available from cache: ${path}`
           : false;
       },
       task: async (ctx, task) => {
-        task.title = `Downloading ADF schema for @atlaskit/adf-schema v${ctx.version}`;
+        task.title = `Downloading ADF schema for ${PACKAGE_NAME} v${ctx.version}`;
 
         const tmpDir = tempy.directory();
         config.set(`schemas.${ctx.version}`, tmpDir);

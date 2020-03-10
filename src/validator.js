@@ -3,8 +3,8 @@ const Ajv = require('ajv');
 const Listr = require('listr');
 const betterAjvErrors = require('better-ajv-errors');
 
-const { schemaTasks } = require('./schema');
 const { readFile } = require('fs').promises;
+const { schemaTasks } = require('./schema');
 
 const ajv = new Ajv({ jsonPointers: true });
 
@@ -38,6 +38,7 @@ const tasks = new Listr([
     title: 'Validating',
     task: ctx => {
       const { schema, data } = ctx;
+      ctx.title = `Validating using @atlaskit/adf-schema`;
       const validate = ajv.compile(schema);
       const isValid = validate(data);
       if (!isValid) {
