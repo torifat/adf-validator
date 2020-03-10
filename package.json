@@ -1,0 +1,39 @@
+{
+  "name": "adf-validator",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "adfv": "./src/cli.js"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "scripts": {
+    "adfv": "./src/cli.js",
+    "lint": "pretty-quick",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ajv": "^4.11.8",
+    "better-ajv-errors": "^0.6.7",
+    "conf": "^6.2.1",
+    "got": "^10.6.0",
+    "latest-version": "^5.1.0",
+    "listr": "^0.14.3",
+    "meow": "^6.0.1",
+    "tempy": "^0.5.0"
+  },
+  "devDependencies": {
+    "husky": "^4.2.3",
+    "prettier": "1.19.1",
+    "pretty-quick": "^2.0.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
+}
