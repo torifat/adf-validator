@@ -2,6 +2,16 @@
 
 [ADF](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) document validator
 
+### Install
+
+```
+$ npm i -g adf-validator
+$ # or
+$ npm install --global adf-validator
+```
+
+### Usage
+
 ```
   Usage
     $ adfv <file.adf.json>
@@ -20,3 +30,7 @@
   Notes
     - By default it validates against the full ADF Schema.
 ```
+
+## Demo
+
+[![ADF Validator](https://asciinema.org/a/l4i4yNQIOiGpox0fNPfZFjRWT.svg)](https://asciinema.org/a/l4i4yNQIOiGpox0fNPfZFjRWT)
