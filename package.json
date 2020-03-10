@@ -1,6 +1,6 @@
 {
   "name": "adf-validator",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "ADF document validator",
   "bin": {
     "adfv": "./src/cli.js"
