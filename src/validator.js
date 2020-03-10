@@ -36,7 +36,7 @@ const tasks = new Listr([
   },
   {
     title: 'Validating',
-    task: (ctx, task) => {
+    task: ctx => {
       const { schema, data } = ctx;
       const validate = ajv.compile(schema);
       const isValid = validate(data);

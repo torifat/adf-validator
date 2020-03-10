@@ -10,7 +10,9 @@
   },
   "scripts": {
     "adfv": "./src/cli.js",
-    "lint": "pretty-quick",
+    "lint:code": "eslint src/**/*.js",
+    "lint:format": "prettier --write src/**/*.js",
+    "lint": "npm run lint:code && npm run lint:format",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -27,13 +29,14 @@
     "tempy": "^0.5.0"
   },
   "devDependencies": {
+    "eslint": "^6.8.0",
     "husky": "^4.2.3",
-    "prettier": "1.19.1",
-    "pretty-quick": "^2.0.1"
+    "lint-staged": "^10.0.8",
+    "prettier": "1.19.1"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged"
+      "pre-commit": "lint-staged"
     }
   }
 }

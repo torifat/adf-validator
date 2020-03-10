@@ -15,11 +15,17 @@ const config = new Conf();
 const ONE_DAY = 1000 * 60 * 60 * 24;
 const updateCheckInterval = ONE_DAY;
 
-const downloadSchema = (path, version, stage = 'full') => {
+/**
+ * Returns a async Listr task handler which downloads an ADF schema from unpkg.com
+ * @param {string} path Path for storing the downloaded ADF Schema
+ * @param {string} version Version of atlaskit/adf-schema npm package
+ * @param {('full' | 'stage-0')} stage Stage of ADF Schema
+ */
+const downloadSchema = (path, version, stage) => {
   return async (ctx, task) => {
     const url = `https://unpkg.com/@atlaskit/adf-schema@${version}/dist/json-schema/v1/${stage}.json`;
     const response = await got(url).on('downloadProgress', progress => {
-      task.output = progress.percent;
+      task.output = `${progress.percent * 100}%`;
     });
     if (ctx.stage === stage) {
       ctx.schema = JSON.parse(response.body);
@@ -73,7 +79,7 @@ const schemaTasks = () =>
           [
             {
               title: 'Downloading Full ADF Schema',
-              task: downloadSchema(tmpDir, ctx.version),
+              task: downloadSchema(tmpDir, ctx.version, 'full'),
             },
             {
               title: 'Downloading Stage 0 ADF Schema',
