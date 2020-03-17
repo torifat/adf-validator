@@ -12,7 +12,7 @@ const { readFile, writeFile } = require('fs').promises;
 
 const { PACKAGE_NAME } = require('./constants');
 
-const config = new Conf();
+const config = new Conf({ projectName: 'adf-validator' });
 
 /**
  * Returns a async Listr task handler which downloads an ADF schema from unpkg.com
