@@ -1,10 +1,12 @@
 'use strict';
 const Ajv = require('ajv');
 const Listr = require('listr');
+const chalk = require('chalk');
 const betterAjvErrors = require('better-ajv-errors');
 
-const { readFile } = require('fs').promises;
 const { schemaTasks } = require('./schema');
+const { PACKAGE_NAME } = require('./constants');
+const { taskLoadData } = require('./tasks/load-data');
 
 const ajv = new Ajv({ jsonPointers: true });
 
@@ -21,14 +23,7 @@ const tasks = new Listr([
           },
           {
             title: 'Loading data',
-            task: async ctx => {
-              const data = await readFile(ctx.file, 'utf-8');
-              if (data) {
-                ctx.data = JSON.parse(data);
-                return;
-              }
-              throw new Error(`Couldn't read content of ${ctx.file}!`);
-            },
+            task: taskLoadData,
           },
         ],
         { concurrent: true }
@@ -36,16 +31,21 @@ const tasks = new Listr([
   },
   {
     title: 'Validating',
-    task: ctx => {
-      const { schema, data } = ctx;
-      ctx.title = `Validating using @atlaskit/adf-schema`;
-      const validate = ajv.compile(schema);
+    task: (ctx, task) => {
+      const { schema, schemaJSON, data, version } = ctx;
+      const usingText = schema
+        ? chalk`using {bold local} schema`
+        : chalk`using {underline ${PACKAGE_NAME}} v${version}`;
+      task.title = `Validating ${usingText}`;
+      const validate = ajv.compile(schemaJSON);
       const isValid = validate(data);
       if (!isValid) {
-        ctx.errors = betterAjvErrors(schema, data, validate.errors, {
+        ctx.errors = betterAjvErrors(schemaJSON, data, validate.errors, {
           indent: 2,
         });
         throw new Error('Validation failed!');
+      } else {
+        task.title = chalk`Successfully validated ${usingText}`;
       }
     },
   },

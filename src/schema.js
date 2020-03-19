@@ -27,7 +27,7 @@ const downloadSchema = (path, version, stage) => {
       task.output = `${progress.percent * 100}%`;
     });
     if (ctx.stage === stage) {
-      ctx.schema = JSON.parse(response.body);
+      ctx.schemaJSON = JSON.parse(response.body);
     }
     await writeFile(join(path, `${stage}.json`), response.body);
   };
@@ -38,6 +38,7 @@ const schemaTasks = () =>
     {
       title: 'Fetching latest version from npm',
       skip: ctx =>
+        ctx.schema ||
         ctx.version ||
         Date.now() - (config.get('lastUpdateCheck') || 0) <
           ctx.updateCheckInterval,
@@ -51,7 +52,7 @@ const schemaTasks = () =>
     },
     {
       title: 'Retrieving stored version',
-      skip: ctx => !!ctx.version,
+      skip: ctx => ctx.schema || !!ctx.version,
       task: ctx => {
         const version = config.get('version');
         if (!version) {
@@ -65,6 +66,9 @@ const schemaTasks = () =>
     {
       title: 'Downloading',
       skip: async ctx => {
+        if (ctx.schema) {
+          return true;
+        }
         const path = config.get(`schemas.${ctx.version}`);
         return !ctx.force && path && existsSync(path)
           ? `Available from cache: ${path}`
@@ -93,14 +97,14 @@ const schemaTasks = () =>
     },
     {
       title: 'Loading',
-      skip: ctx => !!ctx.schema,
+      skip: ctx => !!ctx.schemaJSON,
       task: async ctx => {
         const basePath = config.get(`schemas.${ctx.version}`);
-        const schemaPath = join(basePath, `${ctx.stage}.json`);
+        const schemaPath = ctx.schema || join(basePath, `${ctx.stage}.json`);
         if (existsSync(schemaPath)) {
           const schema = await readFile(schemaPath, 'utf-8');
           if (schema) {
-            ctx.schema = JSON.parse(schema);
+            ctx.schemaJSON = JSON.parse(schema);
             return;
           }
         }
