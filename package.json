@@ -29,7 +29,7 @@
     "better-ajv-errors": "^0.6.7",
     "chalk": "^3.0.0",
     "conf": "^6.2.1",
-    "got": "^10.6.0",
+    "got": "^11.8.5",
     "latest-version": "^5.1.0",
     "listr": "^0.14.3",
     "meow": "^6.0.1",
